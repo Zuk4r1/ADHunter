@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Vulnerabilidades - ADHUNTER</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th {
+            background-color: #444;
+            color: #fff;
+            padding: 10px;
+        }
+        td {
+            padding: 10px;
+            vertical-align: top;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ADHUNTER</h1>
+
+    <h2>Resultados del Escaneo</h2>
+    <table>
+        <tr>
+            <th>Salida Detallada</th>
+        </tr>
+        <tr>
+            <td><pre>{{ result }}</pre></td>
+        </tr>
+    </table>
+
+    <h2>Payloads Utilizados</h2>
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Payload</th>
+            <th>Comando</th>
+            <th>Impacto</th>
+        </tr>
+        {% for p in payloads %}
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td><code>{{ p.payload }}</code></td>
+            <td><code>{{ p.comando }}</code></td>
+            <td>{{ p.impacto }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <footer>
+        ADHUNTE creado por >_zuk4r1
+    </footer>
+
+</body>
+</html>
+

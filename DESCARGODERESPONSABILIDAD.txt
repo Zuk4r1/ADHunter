@@ -1,0 +1,10 @@
+DESCARGO DE RESPONSABILIDAD
+
+El autor de este repositorio no se responsabiliza del uso indebido de la información, las herramientas o las técnicas aquí descritas. El contenido se proporciona únicamente con fines educativos y de investigación. Se recomienda estrictamente a los usuarios que utilicen esta información de acuerdo con las leyes y normativas aplicables y únicamente en sistemas para los que cuenten con autorización explícita.
+
+Al acceder y utilizar este repositorio, usted acepta:
+
+Abstenerse de utilizar la información proporcionada para cualquier actividad ilegal o poco ética.
+Asegúrese de que todas las pruebas y experimentos se realicen de forma responsable y con la debida autorización.
+Reconoce que cualquier acción que realices basándose en el contenido de este repositorio es de tu exclusiva responsabilidad.
+Ni el autor será responsable de ningún daño, directo o indirecto, derivado del uso indebido o la aplicación no autorizada del conocimiento aquí contenido. Actúe siempre con prudencia, ética y dentro del marco legal.

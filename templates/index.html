@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ADHunter - Escáner de Active Directory</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f4f4;
+            background-image: url("{{ url_for('static', filename='fondo.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #111;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #3f51b5;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 97%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #3f51b5;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card.vulnerable {
+            background-color: #ffebee;
+            border-left: 5px solid #f44336;
+        }
+
+        .card.seguro {
+            background-color: #e8f5e9;
+            border-left: 5px solid #4caf50;
+        }
+
+        .icon {
+            font-size: 1.4em;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .github-link {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .github-link:hover {
+            color: #000;
+        }
+
+        .github-icon {
+            margin-left: 5px;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-height: 100px; margin-bottom: 10px;">
+            <h1>ADHunter</h1>
+        </div>
+        <form method="POST">
+            <label>URL o Endpoint:</label><br>
+            <input type="text" name="url" placeholder="https://example.com/login" required>
+            <br><br>
+            <button type="submit">Ejecutar Escaneo</button>
+        </form>
+
+        {% if result %}
+        <div class="results">
+            <h2>Resultados del Escaneo:</h2>
+            {% for r in result.split('<br>') %}
+            <div class="card {{ 'vulnerable' if '[!]' in r else 'seguro' }}">
+                <span class="icon">{{ '⚠️' if '[!]' in r else '✅' }}</span>
+                {{ r }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Gráfico de vulnerabilidades -->
+        <div class="chart-container">
+            <h3>Gráfico de Vulnerabilidades</h3>
+            <canvas id="vulnerabilityChart"></canvas>
+            <script>
+                var ctx = document.getElementById('vulnerabilityChart').getContext('2d');
+                var vulnerabilityChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Vulnerabilidades', 'Seguros'],
+                        datasets: [{
+                            label: 'Distribución de Vulnerabilidades',
+                            data: [{{ vulnerable_count }}, {{ safe_count }}],  // Datos de vulnerabilidades y seguros
+                            backgroundColor: ['#f44336', '#4caf50'],
+                            borderColor: ['#fff', '#fff'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return tooltipItem.raw + ' ' + tooltipItem.dataset.label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            Creado por 🧠
+            <a class="github-link" href="https://github.com/Zuk4r1" target="_blank">
+                Zuk4r1 <i class="fab fa-github github-icon"></i>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+

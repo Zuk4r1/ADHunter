@@ -1,0 +1,11 @@
+Flask
+tabulate
+requests
+gunicorn
+flask-cors
+python-dotenv
+jinja2
+wkhtmltopdf
+pdfkit
+weasyprint
+markdown2 
