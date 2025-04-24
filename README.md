@@ -22,11 +22,18 @@ cd ADHunter
 pip install -r requirements.txt
 ```
 
-## 🧪 Uso
+## 🛠️ Uso
 
 ```bash
 python app.py
 ```
+## 🌐 Interfaz grafica
+
+![Texto alternativo](imagenes/uso.png)
+
+## 📑 Resultado del escaneo
+
+![Texto alternativo](imagenes/resultado.png) 
 
 ## 📊 Salida del Informe
 
