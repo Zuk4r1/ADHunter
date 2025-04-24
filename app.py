@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file  # <--- SE AÑADE send_file
 from utils.scanner import run_tests, check_ntlmv1, check_kerberoasting, check_exposed_endpoints
 from report_generator import generate_html_report  # NUEVA LÍNEA IMPORTADA
+import os  # <--- SE AÑADE os
 
 app = Flask(__name__)
 
@@ -28,25 +29,36 @@ def index():
 
         # Generación del reporte HTML
         payloads_info = [
-    {
-        "nombre": "Prueba XSS Reflejado",
-        "payload": "<script>alert('XSS')</script>",
-        "impacto": "Permite la ejecución de scripts maliciosos en el navegador de la víctima.",
-        "comando": "GET /vulnerable?input=<script>alert('XSS')</script>"
-    },
-    {
-        "nombre": "Inyección SQL",
-        "payload": "' OR '1'='1",
-        "impacto": "Permite evadir autenticación y acceder a datos sensibles.",
-        "comando": "POST /login -d \"username=admin&password=' OR '1'='1\""
-    }
-]
-
-	generate_html_report(result_data=result, payloads=payloads_info)
+            {
+                "nombre": "Prueba XSS Reflejado",
+                "payload": "<script>alert('XSS')</script>",
+                "impacto": "Permite la ejecución de scripts maliciosos en el navegador de la víctima.",
+                "comando": "GET /vulnerable?input=<script>alert('XSS')</script>"
+            },
+            { 
+                "nombre": "Inyección SQL",
+                "payload": "' OR '1'='1",
+                "impacto": "Permite evadir autenticación y acceder a datos sensibles.",
+                "comando": "POST /login -d \"username=admin&password=' OR '1'='1\""
+            }
+        ]
+        generate_html_report(result_data=result, payloads=payloads_info)
 
     return render_template("index.html", result=result, 
                            vulnerable_count=vulnerable_count, 
                            safe_count=safe_count)  # Pasamos los contadores a la plantilla
+
+
+# NUEVA RUTA PARA DESCARGA DEL REPORTE HTML
+@app.route('/download_report')
+def download_report():
+    try:
+        with open("latest_report.txt", "r") as f:
+            path = f.read().strip()
+        return send_file(path, as_attachment=True)
+    except FileNotFoundError:
+        return "No hay reportes disponibles todavía."
+
 
 if __name__ == '__main__':
     app.run(debug=True)
