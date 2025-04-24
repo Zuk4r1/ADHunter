@@ -1,6 +1,6 @@
 # ADHunter 🕵️‍♂️
 
-**ADHunter** es una herramienta avanzada de auditoría de seguridad para Active Directory. Permite realizar análisis de seguridad en entornos corporativos detectando configuraciones inseguras, vulnerabilidades críticas y proporcionando reportes detallados en formato HTML y Markdown.
+**ADHunter** es una herramienta avanzada de auditoría de seguridad para Active Directory. Permite realizar análisis de seguridad en entornos corporativos detectando configuraciones inseguras, vulnerabilidades críticas y proporcionando reportes detallados en formato HTML.
 
 ---
 
